@@ -83,7 +83,7 @@ def main():
                             break
 
         # 3. Update terminal display
-        df_1h = broker.get_intraday_data(
+        df_1h = broker.intraday_data(
             security_id=nifty_50_security_id,
             exchange_segment='NSE_INDEX',
             instrument_type='INDEX',

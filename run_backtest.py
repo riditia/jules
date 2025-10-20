@@ -29,7 +29,7 @@ def main():
     for symbol in config['instruments']['nifty50_symbols']:
         security_id = broker.security_id_map.get(symbol)
         if security_id:
-            df = broker.get_intraday_data(
+            df = broker.intraday_data(
                 security_id=str(security_id),
                 exchange_segment='NSE_EQ',
                 instrument_type='EQUITY',

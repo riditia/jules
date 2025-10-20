@@ -43,15 +43,16 @@ class DhanBroker:
             print(f"Error fetching live market data: {e}")
             return None
 
-    def get_intraday_data(self, security_id, exchange_segment='NSE_EQ', instrument_type='EQUITY', interval='60'):
+    def intraday_data(self, security_id, exchange_segment='NSE_EQ', instrument_type='EQUITY', interval='60'):
         """
         Fetches intraday historical data for a given symbol.
         """
         try:
-            return self.dhan.get_intraday_data(
+            # Corrected function name from get_intraday_data to intraday_data
+            return self.dhan.intraday_data(
                 security_id=str(security_id),
                 exchange_segment=exchange_segment,
-                instrument_type=instrument_type,
+                instrument=instrument_type,
                 interval=interval
             )
         except Exception as e:

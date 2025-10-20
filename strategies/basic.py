@@ -30,7 +30,7 @@ class BasicStrategy:
                 continue
 
             # 1. Fetch historical data (1H timeframe)
-            df = self.broker.get_intraday_data(
+            df = broker.intraday_data(
                 security_id=str(security_id),
                 exchange_segment='NSE_EQ',
                 instrument_type='EQUITY',
