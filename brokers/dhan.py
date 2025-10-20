@@ -1,0 +1,113 @@
+import os
+import pandas as pd
+from dhanhq import dhanhq
+
+class DhanBroker:
+    """
+    A broker class for interacting with the Dhan API.
+    """
+    def __init__(self):
+        """
+        Initializes the DhanBroker with API credentials from environment variables.
+        """
+        client_id = os.getenv("DHAN_CLIENT_ID")
+        access_token = os.getenv("DHAN_ACCESS_TOKEN")
+
+        if not client_id or not access_token:
+            raise ValueError("DHAN_CLIENT_ID and DHAN_ACCESS_TOKEN must be set as environment variables.")
+
+        self.dhan = dhanhq.DhanHq(client_id, access_token)
+        self.security_id_map = self._load_security_id_map()
+
+    def _load_security_id_map(self):
+        """
+        Loads the security ID map from the Dhan API.
+        """
+        try:
+            url = "https://images.dhan.co/api-data/api-scrip-master.csv"
+            df = pd.read_csv(url)
+            # The column name for security ID in the CSV is 'SEM_SMST_SECURITY_ID'
+            # The column name for the symbol is 'SEM_TRADING_SYMBOL'
+            return df.set_index('SEM_TRADING_SYMBOL')['SEM_SMST_SECURITY_ID'].to_dict()
+        except Exception as e:
+            print(f"Error loading security ID map: {e}")
+            return {}
+
+    def get_live_market_data(self, security_id, exchange_segment='NSE_EQ', instrument_type='EQUITY'):
+        """
+        Fetches live market data for a given security ID.
+        """
+        try:
+            return self.dhan.get_quotes(security_id=str(security_id), exchange_segment=exchange_segment)
+        except Exception as e:
+            print(f"Error fetching live market data: {e}")
+            return None
+
+    def get_intraday_data(self, security_id, exchange_segment='NSE_EQ', instrument_type='EQUITY', interval='60'):
+        """
+        Fetches intraday historical data for a given symbol.
+        """
+        try:
+            return self.dhan.get_intraday_data(
+                security_id=str(security_id),
+                exchange_segment=exchange_segment,
+                instrument_type=instrument_type,
+                interval=interval
+            )
+        except Exception as e:
+            print(f"Error fetching intraday data: {e}")
+            return None
+
+    def get_historical_data(self, security_id, exchange_segment, instrument_type, from_date, to_date):
+        """
+        Fetches historical data for a given symbol.
+        """
+        try:
+            return self.dhan.get_historical_data(
+                security_id=security_id,
+                exchange_segment=exchange_segment,
+                instrument_type=instrument_type,
+                from_date=from_date,
+                to_date=to_date
+            )
+        except Exception as e:
+            print(f"Error fetching historical data: {e}")
+            return None
+
+    def get_account_balance(self):
+        """
+        Retrieves the current account balance.
+        """
+        try:
+            return self.dhan.get_fund_limits()
+        except Exception as e:
+            print(f"Error fetching account balance: {e}")
+            return None
+
+    def get_open_positions(self):
+        """
+        RetrieAves a list of open positions.
+        """
+        try:
+            return self.dhan.get_positions()
+        except Exception as e:
+            print(f"Error fetching open positions: {e}")
+            return None
+
+    def place_order(self, security_id, exchange_segment, transaction_type, quantity, order_type, product_type, price=0):
+        """
+        Places a new order.
+        """
+        try:
+            return self.dhan.place_order(
+                security_id=str(security_id),
+                exchange_segment=exchange_segment,
+                transaction_type=transaction_type,
+                quantity=quantity,
+                order_type=order_type,
+                product_type=product_type,
+                price=price
+            )
+        except Exception as e:
+            print(f"Error placing order: {e}")
+            return None
