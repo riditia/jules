@@ -66,11 +66,14 @@ class Backtester:
             # Update portfolio value
             current_value = capital
             for sym, position in positions.items():
-                # Use .get() for safer access and provide a default empty DataFrame if key not found
-                # Although the key should exist if the position exists.
-                loc_result = all_data.loc.get((sym, date))
-                if loc_result is not None and not loc_result.empty:
-                    current_value += (loc_result['close'] - position['entry_price']) * position['quantity']
+                # Check if the specific index (symbol, date) exists in the all_data DataFrame
+                if (sym, date) in all_data.index:
+                    current_price = all_data.loc[(sym, date), 'close']
+                    current_value += (current_price - position['entry_price']) * position['quantity']
+                else:
+                    # If the current price for an open position is not available (e.g., end of data),
+                    # value it at the last known price (its entry price), meaning P/L is 0 for that day.
+                    pass # Or handle as you see fit, e.g., log a warning.
             self.portfolio_value.append(current_value)
 
 
