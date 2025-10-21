@@ -20,6 +20,9 @@ class Backtester:
         capital = initial_capital
         positions = {} # {symbol: {entry_price, quantity}}
 
+        # Prepare the data by calculating all necessary indicators
+        self.data = self.strategy.prepare_data(self.data)
+
         # Combine all data into a single DataFrame with a multi-index
         all_data = pd.concat(self.data.values(), keys=self.data.keys(), names=['symbol', 'date'])
         all_data = all_data.swaplevel('symbol', 'date').sort_index()
