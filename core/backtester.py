@@ -25,8 +25,8 @@ class Backtester:
         all_data = all_data.swaplevel('symbol', 'date').sort_index()
 
         for date, group in all_data.groupby(level='date'):
-            for symbol, row in group.iterrows():
-                symbol = symbol[0] # Get the symbol from the multi-index
+            for idx, row in group.iterrows():
+                symbol = idx[1] # Get the symbol from the multi-index tuple (date, symbol)
                 df = self.data[symbol]
                 df_slice = df.loc[:date]
 
