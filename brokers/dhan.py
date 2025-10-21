@@ -75,20 +75,29 @@ class DhanBroker:
             traceback.print_exc()
             return None
 
-    def get_historical_data(self, security_id, exchange_segment, instrument_type, from_date, to_date):
+    def get_daily_data(self, security_id, exchange_segment, instrument_type, from_date, to_date):
         """
-        Fetches historical data for a given symbol.
+        Fetches daily historical data for a given symbol.
         """
         try:
-            return self.dhan.get_historical_data(
-                security_id=security_id,
+            response = self.dhan.historical_daily_data(
+                security_id=str(security_id),
                 exchange_segment=exchange_segment,
                 instrument_type=instrument_type,
                 from_date=from_date,
                 to_date=to_date
             )
+
+            if response and response.get('status') == 'success' and 'data' in response:
+                df = pd.DataFrame(response['data'])
+                df['start_Time'] = pd.to_datetime(df['start_Time'])
+                return df
+            else:
+                print(f"Received unexpected or failed response for security ID {security_id}: {response}")
+                return None
         except Exception as e:
-            print(f"Error fetching historical data: {e}")
+            print(f"Error fetching daily historical data for security ID {security_id}: {e}")
+            traceback.print_exc()
             return None
 
     def get_account_balance(self):

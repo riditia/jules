@@ -50,3 +50,47 @@ class BasicStrategy:
             return 'SELL'
 
         return 'HOLD'
+
+    def get_live_signals(self, symbol):
+        """
+        Fetches live data, calculates indicators, and generates signals for a single symbol.
+        This is designed for the live trading bot.
+        """
+        from datetime import datetime, timedelta
+        security_id = self.broker.security_id_map.get(symbol)
+        if not security_id:
+            print(f"Could not find security ID for symbol: {symbol}")
+            return None
+
+        # Fetch the last ~100 days of daily data to ensure enough data for indicators
+        from_date = (datetime.now() - timedelta(days=100)).strftime('%Y-%m-%d')
+        to_date = datetime.now().strftime('%Y-%m-%d')
+
+        df = self.broker.get_daily_data(
+            security_id=security_id,
+            exchange_segment='NSE_EQ',
+            instrument_type='EQUITY',
+            from_date=from_date,
+            to_date=to_date
+        )
+
+        if df is None or df.empty:
+            print(f"No data fetched for {symbol}")
+            return None
+
+        df['date'] = pd.to_datetime(df['start_Time'])
+        df = df.set_index('date')
+
+        # Prepare data (calculate indicators)
+        data = self.prepare_data({symbol: df})
+
+        # Check for a signal on the prepared data
+        signal = self._check_signal(data[symbol])
+
+        signals = []
+        if signal == 'BUY':
+            signals.append(('BUY', symbol))
+        elif signal == 'SELL':
+            signals.append(('SELL', symbol))
+
+        return signals
