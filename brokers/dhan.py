@@ -61,10 +61,13 @@ class DhanBroker:
                 to_date=to_date
             )
 
-            if isinstance(response, pd.DataFrame):
-                return response
+            if response and response.get('status') == 'success' and 'data' in response:
+                df = pd.DataFrame(response['data'])
+                # Convert epoch timestamp to datetime and set as index
+                df['start_Time'] = pd.to_datetime(df['timestamp'], unit='s')
+                return df
             else:
-                print(f"Received unexpected response when fetching intraday data for security ID {security_id}: {response}")
+                print(f"Received unexpected or failed response for security ID {security_id}: {response}")
                 return None
 
         except Exception:
