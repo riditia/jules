@@ -3,6 +3,7 @@ from core.backtester import Backtester
 from strategies.basic import BasicStrategy
 from brokers.dhan import DhanBroker
 import yaml
+import time
 
 def load_config():
     """
@@ -53,11 +54,14 @@ def main():
                 if df_chunk is not None and isinstance(df_chunk, pd.DataFrame) and not df_chunk.empty:
                     all_chunks.append(df_chunk)
 
+                # Add a delay to respect API rate limits
+                time.sleep(0.25)
+
                 current_from_date += timedelta(days=90)
 
             if all_chunks:
                 df = pd.concat(all_chunks)
-                df['date'] = pd.to_datetime(df['start_Time'])
+                df['date'] = pd.to_datetime(df['start_Time']).dt.tz_localize('UTC').dt.tz_convert('Asia/Kolkata')
                 df = df.set_index('date')
                 # Remove duplicate timestamps
                 df = df[~df.index.duplicated(keep='first')]
