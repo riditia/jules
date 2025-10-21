@@ -60,7 +60,7 @@ class DhanBroker:
                 to_date=to_date
             )
         except Exception as e:
-            print(f"Error fetching intraday data: {e}")
+            print(f"Error fetching intraday data for security ID {security_id}: {e}")
             return None
 
     def get_historical_data(self, security_id, exchange_segment, instrument_type, from_date, to_date):
