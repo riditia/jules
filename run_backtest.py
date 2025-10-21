@@ -22,20 +22,41 @@ def main():
     # Load historical data from Dhan API
     from datetime import datetime, timedelta
     today = datetime.now()
-    from_date = (today - timedelta(days=365)).strftime('%Y-%m-%d')
-    to_date = today.strftime('%Y-%m-%d')
+    days_of_data = config['backtest']['days_of_data']
+    interval = config['backtest']['interval']
+    overall_from_date = today - timedelta(days=days_of_data)
 
     data = {}
     for symbol in config['instruments']['nifty50_symbols']:
         security_id = broker.security_id_map.get(symbol)
         if security_id:
-            df = broker.intraday_data(
-                security_id=str(security_id),
-                exchange_segment='NSE_EQ',
-                instrument_type='EQUITY',
-                interval='60'
-            )
-            if df is not None and not df.empty and isinstance(df, pd.DataFrame):
+            all_chunks = []
+            current_from_date = overall_from_date
+
+            while current_from_date < today:
+                current_to_date = current_from_date + timedelta(days=90)
+                if current_to_date > today:
+                    current_to_date = today
+
+                from_date_str = current_from_date.strftime('%Y-%m-%d')
+                to_date_str = current_to_date.strftime('%Y-%m-%d')
+
+                df_chunk = broker.intraday_data(
+                    security_id=str(security_id),
+                    exchange_segment='NSE_EQ',
+                    instrument_type='EQUITY',
+                    interval=interval,
+                    from_date=from_date_str,
+                    to_date=to_date_str
+                )
+
+                if df_chunk is not None and isinstance(df_chunk, pd.DataFrame) and not df_chunk.empty:
+                    all_chunks.append(df_chunk)
+
+                current_from_date += timedelta(days=90)
+
+            if all_chunks:
+                df = pd.concat(all_chunks)
                 df['date'] = pd.to_datetime(df['start_Time'])
                 df = df.set_index('date')
                 data[symbol] = df
