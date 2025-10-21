@@ -1,5 +1,6 @@
 dhanhq
 pandas
-ta
+pandas_ta
 rich
 PyYAML
+dotenv
