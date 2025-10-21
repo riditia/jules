@@ -1,5 +1,5 @@
 import pandas as pd
-import ta
+import pandas_ta as ta
 
 def calculate_ema(df, length):
     """
