@@ -90,6 +90,11 @@ class DhanBroker:
 
             if response and response.get('status') == 'success' and 'data' in response:
                 df = pd.DataFrame(response['data'])
+
+                # If the DataFrame is empty, return None to avoid KeyErrors
+                if df.empty:
+                    return None
+
                 # The daily data API response uses 'day' as the date column.
                 # We rename it to 'start_Time' for consistency with other data formats.
                 df.rename(columns={'day': 'start_Time'}, inplace=True)

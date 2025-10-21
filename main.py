@@ -142,8 +142,8 @@ def main():
         if account_balance and account_balance.get('data') and 'availableBalance' in account_balance['data']:
             display_funds({'availableBalance': account_balance['data']['availableBalance']})
 
-        print(f"--- Loop finished, waiting for 60 seconds ---")
-        time.sleep(60)
+        print(f"--- Loop finished, waiting for 30 minutes ---")
+        time.sleep(1800)
 
 if __name__ == '__main__':
     main()
