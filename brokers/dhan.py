@@ -1,5 +1,6 @@
 import os
 import pandas as pd
+import traceback
 from dhanhq import dhanhq
 from dotenv import load_dotenv
 
@@ -59,8 +60,9 @@ class DhanBroker:
                 from_date=from_date,
                 to_date=to_date
             )
-        except Exception as e:
-            print(f"Error fetching intraday data for security ID {security_id}: {e}")
+        except Exception:
+            print(f"Error fetching intraday data for security ID {security_id}:")
+            traceback.print_exc()
             return None
 
     def get_historical_data(self, security_id, exchange_segment, instrument_type, from_date, to_date):
