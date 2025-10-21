@@ -90,6 +90,9 @@ class DhanBroker:
 
             if response and response.get('status') == 'success' and 'data' in response:
                 df = pd.DataFrame(response['data'])
+                # The daily data API response uses 'day' as the date column.
+                # We rename it to 'start_Time' for consistency with other data formats.
+                df.rename(columns={'day': 'start_Time'}, inplace=True)
                 df['start_Time'] = pd.to_datetime(df['start_Time'])
                 return df
             else:
