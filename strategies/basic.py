@@ -12,42 +12,17 @@ class BasicStrategy:
         self.broker = broker
         self.config = config
 
-    def run(self):
+    def prepare_data(self, data):
         """
-        Runs the trading strategy for all NIFTY 50 symbols.
+        Calculates all the necessary indicators for the historical data.
         """
-        signals = []
-        from datetime import datetime, timedelta
-
-        today = datetime.now()
-        from_date = (today - timedelta(days=365)).strftime('%Y-%m-%d')
-        to_date = today.strftime('%Y-%m-%d')
-
-        for symbol in self.config['instruments']['nifty50_symbols']:
-            security_id = self.broker.security_id_map.get(symbol)
-            if security_id is None:
-                print(f"Could not find security ID for symbol: {symbol}")
-                continue
-
-            # 1. Fetch historical data (1H timeframe)
-            df = broker.intraday_data(
-                security_id=str(security_id),
-                exchange_segment='NSE_EQ',
-                instrument_type='EQUITY',
-                interval='60'
-            )
-
-            if df is not None and not df.empty and isinstance(df, pd.DataFrame):
-                # 2. Calculate indicators
-                df = calculate_ema(df, self.config['strategy']['ema_short_period'])
-                df = calculate_ema(df, self.config['strategy']['ema_long_period'])
-                df = calculate_adx(df, self.config['strategy']['adx_period'])
-
-                # 3. Check for signals
-                signal = self._check_signal(df)
-                if signal != 'HOLD':
-                    signals.append({'symbol': symbol, 'signal': signal, 'security_id': security_id})
-        return signals
+        for symbol in data:
+            df = data[symbol]
+            df = calculate_ema(df, self.config['strategy']['ema_short_period'])
+            df = calculate_ema(df, self.config['strategy']['ema_long_period'])
+            df = calculate_adx(df, self.config['strategy']['adx_period'])
+            data[symbol] = df
+        return data
 
     def _check_signal(self, df):
         """
