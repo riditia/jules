@@ -1,5 +1,6 @@
 import os
 import pandas as pd
+import traceback
 from dhanhq import dhanhq
 from dotenv import load_dotenv
 
@@ -51,7 +52,7 @@ class DhanBroker:
         Fetches intraday historical data for a given symbol.
         """
         try:
-            return self.dhan.intraday_minute_data(
+            response = self.dhan.intraday_minute_data(
                 security_id=str(security_id),
                 exchange_segment=exchange_segment,
                 instrument_type=instrument_type,
@@ -59,8 +60,16 @@ class DhanBroker:
                 from_date=from_date,
                 to_date=to_date
             )
-        except Exception as e:
-            print(f"Error fetching intraday data for security ID {security_id}: {e}")
+
+            if isinstance(response, pd.DataFrame):
+                return response
+            else:
+                print(f"Received unexpected response when fetching intraday data for security ID {security_id}: {response}")
+                return None
+
+        except Exception:
+            print(f"An exception occurred while fetching intraday data for security ID {security_id}:")
+            traceback.print_exc()
             return None
 
     def get_historical_data(self, security_id, exchange_segment, instrument_type, from_date, to_date):
