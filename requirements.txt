@@ -1,5 +1,5 @@
 dhanhq
 pandas
-pandas-ta
+ta
 rich
 PyYAML

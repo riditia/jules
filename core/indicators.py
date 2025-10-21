@@ -1,19 +1,20 @@
 import pandas as pd
-import pandas_ta as ta
+import ta
 
 def calculate_ema(df, length):
     """
     Calculates the Exponential Moving Average (EMA).
     """
-    df[f'EMA_{length}'] = ta.ema(df['close'], length=length)
+    df[f'EMA_{length}'] = ta.trend.ema_indicator(df['close'], window=length)
     return df
 
 def calculate_adx(df, length):
     """
     Calculates the Average Directional Index (ADX).
     """
-    adx = ta.adx(df['high'], df['low'], df['close'], length=length)
-    df = df.join(adx)
+    adx = ta.trend.adx(df['high'], df['low'], df['close'], window=length)
+    if adx is not None:
+        df = df.join(adx)
     return df
 
 def calculate_rsi(df, length):
