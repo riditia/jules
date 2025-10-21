@@ -54,10 +54,10 @@ def main():
                 if df_chunk is not None and isinstance(df_chunk, pd.DataFrame) and not df_chunk.empty:
                     all_chunks.append(df_chunk)
 
-                current_from_date += timedelta(days=90)
-
                 # Add a delay to respect API rate limits
                 time.sleep(0.25)
+
+                current_from_date += timedelta(days=90)
 
             if all_chunks:
                 df = pd.concat(all_chunks)

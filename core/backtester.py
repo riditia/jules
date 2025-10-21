@@ -66,14 +66,9 @@ class Backtester:
             # Update portfolio value
             current_value = capital
             for sym, position in positions.items():
-                # Check if the specific index (symbol, date) exists in the all_data DataFrame
                 if (sym, date) in all_data.index:
                     current_price = all_data.loc[(sym, date), 'close']
                     current_value += (current_price - position['entry_price']) * position['quantity']
-                else:
-                    # If the current price for an open position is not available (e.g., end of data),
-                    # value it at the last known price (its entry price), meaning P/L is 0 for that day.
-                    pass # Or handle as you see fit, e.g., log a warning.
             self.portfolio_value.append(current_value)
 
 
@@ -87,43 +82,44 @@ class Backtester:
 
         trade_df = pd.DataFrame(self.trades)
 
-        # --- Terminal Report ---
-        total_pnl = trade_df['pnl'].sum()
-        winning_trades = trade_df[trade_df['pnl'] > 0]
-        losing_trades = trade_df[trade_df['pnl'] <= 0]
+        # --- Per-Symbol Summary Calculation ---
+        summary_rows = []
+        for symbol, group in trade_df.groupby('symbol'):
+            sells = group[group['type'] == 'SELL']
+            total_pnl = sells['pnl'].sum()
+            num_trades = len(sells)
+            winning_trades = sells[sells['pnl'] > 0]
+            losing_trades = sells[sells['pnl'] <= 0]
+            num_winning = len(winning_trades)
+            num_losing = len(losing_trades)
+            win_loss_ratio = num_winning / num_losing if num_losing > 0 else float('inf')
 
-        num_winning = len(winning_trades)
-        num_losing = len(losing_trades)
-        win_loss_ratio = num_winning / num_losing if num_losing > 0 else float('inf')
+            # Per-symbol max drawdown
+            symbol_trades = trade_df[trade_df['symbol'] == symbol]
+            symbol_portfolio_value = [100000] # Start with initial capital for each symbol
+            for _, row in symbol_trades.iterrows():
+                if 'pnl' in row and pd.notna(row['pnl']):
+                    symbol_portfolio_value.append(symbol_portfolio_value[-1] + row['pnl'])
 
-        # Max Drawdown calculation
-        portfolio_series = pd.Series(self.portfolio_value)
-        peak = portfolio_series.expanding(min_periods=1).max()
-        drawdown = (portfolio_series - peak) / peak
-        max_drawdown = drawdown.min()
+            portfolio_series = pd.Series(symbol_portfolio_value)
+            peak = portfolio_series.expanding(min_periods=1).max()
+            drawdown = (portfolio_series - peak) / peak
+            max_drawdown = drawdown.min()
 
-        # Create a summary DataFrame for rich table
-        summary_data = {
-            "Metric": [
-                "Total P/L",
-                "Total Trades",
-                "Winning Trades",
-                "Losing Trades",
-                "Win/Loss Ratio",
-                "Max Drawdown"
-            ],
-            "Value": [
-                f"{total_pnl:,.2f}",
-                len(trade_df) // 2, # Assuming one buy and one sell per trade
-                num_winning,
-                num_losing,
-                f"{win_loss_ratio:.2f}",
-                f"{max_drawdown:.2%}"
-            ]
-        }
-        summary_df = pd.DataFrame(summary_data)
 
-        print("\n--- Backtest Summary ---")
+            summary_rows.append({
+                "Symbol": symbol,
+                "Total_P/L": f"{total_pnl:,.2f}",
+                "Total_Trades": num_trades,
+                "Winning_Trades": num_winning,
+                "Losing_Trades": num_losing,
+                "Win/Loss_Ratio": f"{win_loss_ratio:.2f}",
+                "Max_Drawdown": f"{max_drawdown:.2%}"
+            })
+
+        summary_df = pd.DataFrame(summary_rows)
+
+        print("\n-------------------------------------------Backtest Summary-----------------------------------------")
         print(summary_df.to_string(index=False))
 
         # --- CSV Export ---
