@@ -25,11 +25,11 @@ class Backtester:
 
         # Combine all data into a single DataFrame with a multi-index
         all_data = pd.concat(self.data.values(), keys=self.data.keys(), names=['symbol', 'date'])
-        all_data = all_data.swaplevel('symbol', 'date').sort_index()
+        all_data.sort_index(inplace=True)
 
         for date, group in all_data.groupby(level='date'):
             for idx, row in group.iterrows():
-                symbol = idx[1] # Get the symbol from the multi-index tuple (date, symbol)
+                symbol = idx[0] # Get the symbol from the multi-index tuple (symbol, date)
                 df = self.data[symbol]
                 df_slice = df.loc[:date]
 
@@ -56,8 +56,8 @@ class Backtester:
 
             # Update portfolio value
             current_value = capital
-            for symbol, position in positions.items():
-                current_value += (all_data.loc[(symbol, date), 'close'] - position['entry_price']) * position['quantity']
+            for sym, position in positions.items():
+                current_value += (all_data.loc[(sym, date), 'close'] - position['entry_price']) * position['quantity']
             self.portfolio_value.append(current_value)
 
     def generate_report(self):
