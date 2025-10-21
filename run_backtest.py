@@ -59,6 +59,8 @@ def main():
                 df = pd.concat(all_chunks)
                 df['date'] = pd.to_datetime(df['start_Time'])
                 df = df.set_index('date')
+                # Remove duplicate timestamps
+                df = df[~df.index.duplicated(keep='first')]
                 data[symbol] = df
 
     if not data:
